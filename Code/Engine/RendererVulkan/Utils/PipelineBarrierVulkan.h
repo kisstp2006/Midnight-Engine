@@ -19,6 +19,7 @@ class EZ_RENDERERVULKAN_DLL ezPipelineBarrierVulkan
 {
 public:
   ezPipelineBarrierVulkan(ezAllocator* pAllocator);
+  ~ezPipelineBarrierVulkan();
 
   /// \name Barrier handling
   ///@{
@@ -111,7 +112,7 @@ private:
   {
     const ezGALBufferVulkan* m_pBuffer = nullptr;
     ezBitfield<ezHybridArray<ezUInt32, 1>> m_dirty;
-    ezHybridArray<SubBufferState, 1> m_subBufferState;
+    ezHybridArray<SubBufferState, 5> m_subBufferState;
   };
 
   bool IsDirtyInternal(const BufferState& state, const SubBufferState& subState) const;

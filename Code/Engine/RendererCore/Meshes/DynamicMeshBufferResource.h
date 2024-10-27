@@ -4,6 +4,7 @@
 #include <RendererCore/Meshes/MeshBufferResource.h>
 #include <RendererCore/RendererCoreDLL.h>
 #include <RendererFoundation/RendererFoundationDLL.h>
+#include <RendererFoundation/Resources/BufferPool.h>
 
 using ezDynamicMeshBufferResourceHandle = ezTypedResourceHandle<class ezDynamicMeshBufferResource>;
 
@@ -59,9 +60,9 @@ public:
   ~ezDynamicMeshBufferResource();
 
   EZ_ALWAYS_INLINE const ezDynamicMeshBufferResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
-  EZ_ALWAYS_INLINE ezGALBufferHandle GetVertexBuffer() const { return m_hVertexBuffer; }
-  EZ_ALWAYS_INLINE ezGALBufferHandle GetIndexBuffer() const { return m_hIndexBuffer; }
-  EZ_ALWAYS_INLINE ezGALBufferHandle GetColorBuffer() const { return m_hColorBuffer; }
+  EZ_ALWAYS_INLINE ezGALBufferHandle GetVertexBuffer() const { return m_VertexBuffer.IsInitialized() ? m_VertexBuffer.GetCurrentBuffer() : ezGALBufferHandle(); }
+  EZ_ALWAYS_INLINE ezGALBufferHandle GetIndexBuffer() const { return m_IndexBuffer.IsInitialized() ? m_IndexBuffer.GetCurrentBuffer() : ezGALBufferHandle(); }
+  EZ_ALWAYS_INLINE ezGALBufferHandle GetColorBuffer() const { return m_ColorBuffer.IsInitialized() ? m_ColorBuffer.GetCurrentBuffer() : ezGALBufferHandle(); }
 
   /// \brief Grants write access to the vertex data, and flags the data as 'dirty'.
   ezArrayPtr<ezDynamicMeshVertex> AccessVertexData()
@@ -120,9 +121,9 @@ private:
   bool m_bAccessedIB = false;
   bool m_bAccessedCB = false;
 
-  ezGALBufferHandle m_hVertexBuffer;
-  ezGALBufferHandle m_hIndexBuffer;
-  ezGALBufferHandle m_hColorBuffer;
+  ezGALBufferPool m_VertexBuffer;
+  ezGALBufferPool m_IndexBuffer;
+  ezGALBufferPool m_ColorBuffer;
   ezDynamicMeshBufferResourceDescriptor m_Descriptor;
 
   ezVertexDeclarationInfo m_VertexDeclaration;

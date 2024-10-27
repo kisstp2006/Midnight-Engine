@@ -26,11 +26,17 @@ namespace
 } // namespace
 
 ezPipelineBarrierVulkan::ezPipelineBarrierVulkan(ezAllocator* pAllocator)
-  : m_bufferBarriers(pAllocator)
-  , m_imageBarriers(pAllocator)
-  , m_imageState(pAllocator)
-  , m_bufferState(pAllocator)
+  //: m_bufferBarriers(pAllocator)
+  //, m_imageBarriers(pAllocator)
+  //, m_imageState(pAllocator)
+  //, m_bufferState(pAllocator)
 {
+}
+
+ezPipelineBarrierVulkan::~ezPipelineBarrierVulkan()
+{
+  m_imageState.Clear();
+  m_bufferState.Clear();
 }
 
 void ezPipelineBarrierVulkan::SetCommandBuffer(vk::CommandBuffer* pCommandBuffer)
@@ -165,10 +171,12 @@ void ezPipelineBarrierVulkan::AccessBuffer(const ezGALBufferVulkan* pBuffer, vk:
   {
     if (IsDirtyInternal(*pState, subState))
     {
+      pState = nullptr;
       Flush();
     }
   }
-  else
+
+  if (!pState)
   {
     BufferState state;
     state.m_pBuffer = pBuffer;
@@ -176,7 +184,12 @@ void ezPipelineBarrierVulkan::AccessBuffer(const ezGALBufferVulkan* pBuffer, vk:
   }
 
   AddBufferBarrierInternal(pBuffer->GetVkBuffer(), offset, length, srcStages, srcAccess, dstStages, dstAccess);
+  if (pState->m_subBufferState.GetCapacity() == 0)
+  {
+    printf("");
+  }
   pState->m_subBufferState.PushBack(subState);
+  pState->m_dirty.SetCount(pState->m_subBufferState.GetCount(), true);
 }
 
 void ezPipelineBarrierVulkan::EnsureImageLayout(const ezGALTextureVulkan* pTexture, vk::ImageLayout dstLayout, vk::PipelineStageFlags dstStages, vk::AccessFlags dstAccess, bool bDiscardSource)
