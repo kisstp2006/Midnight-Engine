@@ -217,9 +217,18 @@ void ezGALCommandEncoder::CopyBufferRegion(
   }
 }
 
+void ezGALCommandEncoder::GALStaticDeviceEventHandler(const ezGALDeviceEvent& e)
+{
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
+  if (e.m_Type == ezGALDeviceEvent::BeforeBeginFrame)
+    m_BufferUpdates.Clear();
+#endif
+}
+
 void ezGALCommandEncoder::UpdateBuffer(ezGALBufferHandle hDest, ezUInt32 uiDestOffset, ezArrayPtr<const ezUInt8> sourceData, ezGALUpdateMode::Enum updateMode)
 {
   AssertRenderingThread();
+  EZ_ASSERT_DEBUG(m_CurrentCommandEncoderType != CommandEncoderType::Render || updateMode == ezGALUpdateMode::Discard || updateMode == ezGALUpdateMode::NoOverwrite, "Only discard updates on dynamic buffers are supported within a render scope");
 
   EZ_ASSERT_DEV(!sourceData.IsEmpty(), "Source data for buffer update is invalid!");
 
@@ -227,12 +236,33 @@ void ezGALCommandEncoder::UpdateBuffer(ezGALBufferHandle hDest, ezUInt32 uiDestO
 
   if (pDest != nullptr)
   {
-    if (updateMode == ezGALUpdateMode::NoOverwrite && !(GetDevice().GetCapabilities().m_bSupportsNoOverwriteBufferUpdate))
-    {
-      updateMode = ezGALUpdateMode::CopyToTempStorage;
-    }
-
     EZ_ASSERT_DEV(pDest->GetSize() >= (uiDestOffset + sourceData.GetCount()), "Buffer {} is too small (or offset {} too big) for {} bytes", pDest->GetSize(), uiDestOffset, sourceData.GetCount());
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
+    if (updateMode == ezGALUpdateMode::NoOverwrite)
+    {
+      auto it = m_BufferUpdates.Find(hDest);
+      if (!it.IsValid())
+      {
+        it = m_BufferUpdates.Insert(hDest, ezHybridArray<BufferRange, 1>());
+      }
+      ezHybridArray<BufferRange, 1>& ranges = it.Value();
+      for (const BufferRange& range : ranges)
+      {
+        EZ_ASSERT_DEBUG(!range.overlapRange(uiDestOffset, sourceData.GetCount()), "A buffer was updated twice in one frame on the same memory range. If this is needed, use CopyToTempStorage mode instead.");
+      }
+      BufferRange* pLastElement = ranges.IsEmpty() ? nullptr : &ranges.PeekBack();
+      if (pLastElement && pLastElement->m_uiOffset + pLastElement->m_uiLength == uiDestOffset)
+      {
+        // In most cases we update the buffer in order so we can compact the write operations to reduce the number of elements we have to loop through.
+        pLastElement->m_uiLength += sourceData.GetCount();
+      }
+      else
+      {
+        ranges.PushBack({uiDestOffset, sourceData.GetCount()});
+      }
+    }
+#endif
     m_CommonImpl.UpdateBufferPlatform(pDest, uiDestOffset, sourceData, updateMode);
   }
   else
@@ -407,9 +437,13 @@ ezGALCommandEncoder::ezGALCommandEncoder(ezGALDevice& ref_device, ezGALCommandEn
   : m_Device(ref_device)
   , m_CommonImpl(ref_commonImpl)
 {
+  ezGALDevice::s_Events.AddEventHandler(ezMakeDelegate(&ezGALCommandEncoder::GALStaticDeviceEventHandler, this));
 }
 
-ezGALCommandEncoder::~ezGALCommandEncoder() = default;
+ezGALCommandEncoder::~ezGALCommandEncoder()
+{
+  ezGALDevice::s_Events.RemoveEventHandler(ezMakeDelegate(&ezGALCommandEncoder::GALStaticDeviceEventHandler, this));
+}
 
 void ezGALCommandEncoder::InvalidateState()
 {

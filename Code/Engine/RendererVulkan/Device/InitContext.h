@@ -25,8 +25,16 @@ public:
   /// \param pInitialData The initial data of the texture. If not set, the initial content will be undefined.
   void InitTexture(const ezGALTextureVulkan* pTexture, vk::ImageCreateInfo& createInfo, ezArrayPtr<ezGALSystemMemoryDescription> pInitialData);
 
+  void UpdateTexture(const ezGALTextureVulkan* pTexture, const ezGALTextureSubresource& DestinationSubResource, const ezBoundingBoxu32& DestinationBox, const ezGALSystemMemoryDescription& pSourceData);
+
   /// \brief Needs to be called by the ezGALDeviceVulkan just before a texture is destroyed to clean up stale barriers.
   void TextureDestroyed(const ezGALTextureVulkan* pTexture);
+
+
+  void InitBuffer(const ezGALBufferVulkan* pBuffer, ezArrayPtr<const ezUInt8> pInitialData);
+
+  void UpdateBuffer(const ezGALBufferVulkan* pBuffer, ezUInt32 uiDestOffset, ezArrayPtr<const ezUInt8> pSourceData);
+
 
 private:
   void EnsureCommandBufferExists();
@@ -34,6 +42,7 @@ private:
   ezGALDeviceVulkan* m_pDevice = nullptr;
 
   ezMutex m_Lock;
+  ezDynamicArray<ezUInt8> m_TempData;
   vk::CommandBuffer m_currentCommandBuffer;
   ezUniquePtr<ezPipelineBarrierVulkan> m_pPipelineBarrier;
   ezUniquePtr<ezCommandBufferPoolVulkan> m_pCommandBufferPool;
