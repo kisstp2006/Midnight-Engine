@@ -7,6 +7,11 @@ trigger:
     exclude:
     - release
 
+pr:
+  branches:
+    include:
+    - dev
+
 jobs:
 - job: ClangTidyVerification
   timeoutInMinutes: 120

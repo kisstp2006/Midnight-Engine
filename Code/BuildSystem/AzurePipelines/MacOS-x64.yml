@@ -13,10 +13,17 @@ variables:
   value: default
 - name: BuildParameters.xcodeDeveloperDir
   value: ''
+
 trigger:
   branches:
     include:
     - dev
+
+pr:
+  branches:
+    include:
+    - dev
+
 name: $(date:yyyyMMdd)$(rev:.r)
 resources:
   repositories:
