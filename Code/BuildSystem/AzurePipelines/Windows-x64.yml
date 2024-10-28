@@ -3,6 +3,12 @@ trigger:
   branches:
     include:
     - dev
+
+pr:
+  branches:
+    include:
+    - dev
+
 resources:
   repositories:
   - repository: self
