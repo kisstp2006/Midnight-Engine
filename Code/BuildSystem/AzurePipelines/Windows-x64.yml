@@ -14,6 +14,7 @@ resources:
   - repository: self
     type: git
     ref: dev
+    
 jobs:
 - job: Job_3
   displayName: StartVM
