@@ -96,7 +96,9 @@ void ezAssetProcessor::StartProcessTask()
 
   m_ProcessTaskState = ProcessTaskState::Running;
 
-  const ezUInt32 uiWorkerCount = ezTaskSystem::GetWorkerThreadCount(ezWorkerThreadType::LongTasks);
+  /////
+  const ezUInt32 uiWorkerCount = 1;
+  //ezTaskSystem::GetWorkerThreadCount(ezWorkerThreadType::LongTasks);
   m_ProcessTasks.SetCount(uiWorkerCount);
 
   for (ezUInt32 idx = 0; idx < uiWorkerCount; ++idx)

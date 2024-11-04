@@ -35,6 +35,11 @@ public:
 
   void UpdateBuffer(const ezGALBufferVulkan* pBuffer, ezUInt32 uiDestOffset, ezArrayPtr<const ezUInt8> pSourceData);
 
+  /// \brief Used by ezUniformBufferPoolVulkan to write the entire uniform scratch pool to the GPU
+  /// \param gpuBuffer The device local buffer to update.
+  /// \param stagingBuffer The staging buffer that contains the data to be copied to gpuBuffer. If null, buffer is CPU writable and already contains the data.
+  /// \param uiDataSize The size of the data to be copied from stagingBuffer to gpuBuffer.
+  void UpdateDynamicUniformBuffer(vk::Buffer gpuBuffer, vk::Buffer stagingBuffer, ezUInt32 uiDataSize);
 
 private:
   void EnsureCommandBufferExists();

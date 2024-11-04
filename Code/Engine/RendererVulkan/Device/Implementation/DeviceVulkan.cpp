@@ -851,9 +851,9 @@ ezGALTextureHandle ezGALDeviceVulkan::CreateTextureInternal(const ezGALTextureCr
   return FinalizeTextureInternal(Description, pTexture);
 }
 
-ezGALBufferHandle ezGALDeviceVulkan::CreateBufferInternal(const ezGALBufferCreationDescription& Description, ezArrayPtr<const ezUInt8> pInitialData, bool bCPU)
+ezGALBufferHandle ezGALDeviceVulkan::CreateBufferInternal(const ezGALBufferCreationDescription& Description, ezArrayPtr<const ezUInt8> pInitialData)
 {
-  ezGALBufferVulkan* pBuffer = EZ_NEW(&m_Allocator, ezGALBufferVulkan, Description, bCPU);
+  ezGALBufferVulkan* pBuffer = EZ_NEW(&m_Allocator, ezGALBufferVulkan, Description);
 
   if (!pBuffer->InitPlatform(this, pInitialData).Succeeded())
   {
@@ -866,6 +866,7 @@ ezGALBufferHandle ezGALDeviceVulkan::CreateBufferInternal(const ezGALBufferCreat
 
 vk::Fence ezGALDeviceVulkan::Submit(bool bAddSignalSemaphore)
 {
+  m_pCommandEncoderImpl->BeforeCommandBufferSubmit();
   vk::CommandBuffer initCommandBuffer = m_pInitContext->GetFinishedCommandBuffer();
   bool bHasCmdBuffer = initCommandBuffer || m_PerFrameData[m_uiCurrentPerFrameData].m_currentCommandBuffer;
 
@@ -969,7 +970,7 @@ vk::Fence ezGALDeviceVulkan::Submit(bool bAddSignalSemaphore)
     m_graphicsQueue.m_queue.submit(1, &submitInfo, renderFence);
   }
 
-  m_pCommandEncoderImpl->CommandBufferSubmitted(renderFence);
+  m_pCommandEncoderImpl->AfterCommandBufferSubmit(renderFence);
 
   auto res = renderFence;
   ReclaimLater(renderFence);
@@ -1538,6 +1539,7 @@ void ezGALDeviceVulkan::EndFramePlatform(ezArrayPtr<ezGALSwapChain*> swapchains)
   {
     Submit();
   }
+  m_pCommandEncoderImpl->EndFrame();
 
   {
     // Resources can be added to deletion / reclaim outside of the render frame. These will not be covered by the fences. To handle this, we swap the resources arrays so for any newly added resources we know they are not part of the batch that is deleted / reclaimed with the frame.

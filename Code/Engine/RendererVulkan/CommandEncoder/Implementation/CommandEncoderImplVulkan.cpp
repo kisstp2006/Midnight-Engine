@@ -29,10 +29,14 @@ ezGALCommandEncoderImplVulkan::ezGALCommandEncoderImplVulkan(ezGALDeviceVulkan& 
   : m_GALDeviceVulkan(device)
 {
   m_vkDevice = device.GetVulkanDevice();
+  m_pUniformBufferPool = EZ_NEW(device.GetAllocator(), ezUniformBufferPoolVulkan, &device);
+  m_pUniformBufferPool->Initialize();
 }
 
 ezGALCommandEncoderImplVulkan::~ezGALCommandEncoderImplVulkan()
 {
+  m_pUniformBufferPool->DeInitialize();
+  m_pUniformBufferPool = nullptr;
 }
 
 void ezGALCommandEncoderImplVulkan::Reset()
@@ -81,7 +85,17 @@ void ezGALCommandEncoderImplVulkan::Reset()
   m_clearValues.Clear();
 }
 
-void ezGALCommandEncoderImplVulkan::CommandBufferSubmitted(vk::Fence submitFence)
+void ezGALCommandEncoderImplVulkan::EndFrame()
+{
+  m_pUniformBufferPool->Reset();
+}
+
+void ezGALCommandEncoderImplVulkan::BeforeCommandBufferSubmit()
+{
+  m_pUniformBufferPool->Submit();
+}
+
+void ezGALCommandEncoderImplVulkan::AfterCommandBufferSubmit(vk::Fence submitFence)
 {
   m_pCommandBuffer = nullptr;
   m_pPipelineBarrier = nullptr;
@@ -288,6 +302,11 @@ void ezGALCommandEncoderImplVulkan::UpdateBufferPlatform(const ezGALBuffer* pDes
       pVulkanDestination->DiscardBuffer();
       [[fallthrough]];
 
+      EZ_ASSERT_DEBUG(pDestination->GetDescription().m_BufferFlags.IsSet(ezGALBufferUsageFlags::Transient), "Transient buffers only support discard mode");
+      EZ_ASSERT_DEBUG(uiDestOffset == 0, "Offset not supported");
+      EZ_ASSERT_DEBUG(pVulkanDestination->GetDescription().m_uiTotalSize == pSourceData.GetCount(), "Transient buffers must be updated in their entirety");
+      m_pUniformBufferPool->UpdateBuffer(pVulkanDestination, pSourceData);
+      break;
     case ezGALUpdateMode::NoOverwrite:
       m_GALDeviceVulkan.GetInitContext().UpdateBuffer(pVulkanDestination, uiDestOffset, pSourceData);
       break;
@@ -1221,7 +1240,14 @@ ezResult ezGALCommandEncoderImplVulkan::FlushDeferredStateChanges()
           {
             const ezGALBufferVulkan* pBuffer = ezUInt32(mapping.m_iSlot) < resources.m_pBoundConstantBuffers.GetCount() ? resources.m_pBoundConstantBuffers[mapping.m_iSlot] : nullptr;
             EZ_VULKAN_CHECK_STATE(pBuffer != nullptr, "No CB bound at '{}'", mapping.m_sName.GetView());
-            write.pBufferInfo = &pBuffer->GetBufferInfo();
+            if (pBuffer->GetDescription().m_BufferFlags.IsSet(ezGALBufferUsageFlags::Transient))
+            {
+              write.pBufferInfo = &m_pUniformBufferPool->GetBuffer(pBuffer);
+            }
+            else
+            {
+              write.pBufferInfo = &pBuffer->GetBufferInfo();
+            }
           }
           break;
           case ezGALShaderResourceType::Texture:

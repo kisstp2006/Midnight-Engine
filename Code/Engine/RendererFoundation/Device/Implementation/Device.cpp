@@ -1377,7 +1377,10 @@ ezEnum<ezGALAsyncResult> ezGALDevice::GetFenceResult(ezGALFenceHandle hFence, ez
 
   EZ_ASSERT_DEBUG(timeout.IsZero() || m_pCommandEncoder == nullptr || !m_pCommandEncoder->IsInRenderingScope(), "Waiting for a fence is only allowed outside of a rendering scope");
 
+  ezStopwatch sw;
   ezEnum<ezGALAsyncResult> res = GetFenceResultPlatform(hFence, timeout);
+  if (!timeout.IsZero())
+    ezLog::Warning("WaitFence: {} ms", sw.GetRunningTotal().GetMilliseconds());
 
   return res;
 }

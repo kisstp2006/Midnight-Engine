@@ -359,11 +359,27 @@ struct ezGALAsyncResult
   };
 };
 
-// Basic structs
+/// \brief Defines the sub resource of a texture.
 struct ezGALTextureSubresource
 {
   ezUInt32 m_uiMipLevel = 0;
   ezUInt32 m_uiArraySlice = 0;
+};
+
+/// \brief Defines the location of a region in a texture.
+struct ezGALTextureRegion
+{
+  ezGALTextureSubresource m_SubResource;
+  ezVec3U32 m_vOffset; ///< z is only valid for 3D textures.
+  ezVec3U32 m_vExtent; ///< z is only valid for 3D textures.
+};
+
+/// \brief Describes the memory layout of a buffer storing a texture sub-resource.
+struct ezGALBufferMemoryDescription
+{
+  ezUInt32 m_uiOffset = 0;
+  ezUInt32 m_uiRowPitch = 0;
+  ezUInt32 m_uiSlicePitch = 0;
 };
 
 struct ezGALSystemMemoryDescription
