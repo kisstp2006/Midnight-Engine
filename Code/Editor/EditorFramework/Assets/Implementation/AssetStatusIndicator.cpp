@@ -18,7 +18,23 @@ ezQtAssetStatusIndicator::ezQtAssetStatusIndicator(ezAssetDocument* pDoc, QWidge
   m_pLabel = new QPushButton();
   m_pLabel->setFlat(true);
   connect(m_pLabel, &QPushButton::clicked, this, &ezQtAssetStatusIndicator::onClick);
-
+  m_pLabel->setStyleSheet("QPushButton { "
+                          "background-color: #2e2e2e; "
+                          "color: #c8c8c8; "
+                          "border: 1px solid #555555; "
+                          "border-radius: 3px; "
+                          "padding: 4px 8px; "
+                          "font-size: 12px; "
+                          "min-width: 2px; "
+                          "} "
+                          "QPushButton:hover { "
+                          "background-color: #3d3d3d; "
+                          "border: 1px solid #888888; "
+                          "} "
+                          "QPushButton:pressed { "
+                          "background-color: #1e1e1e; "
+                          "border: 1px solid #aaaaaa; "
+                          "color: #ffffff; }");
   layout()->addWidget(m_pLabel);
 
   m_pAsset->m_EventsOne.AddEventHandler(ezMakeDelegate(&ezQtAssetStatusIndicator::DocumentEventHandler, this));
