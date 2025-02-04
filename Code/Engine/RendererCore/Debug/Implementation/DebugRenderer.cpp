@@ -2101,9 +2101,11 @@ EZ_BEGIN_STATIC_REFLECTED_TYPE(ezScriptExtensionClass_Debug, ezNoBase, 1, ezRTTI
     EZ_SCRIPT_FUNCTION_PROPERTY(DrawCross, In, "World", In, "Position", In, "Size", In, "Color", In, "Transform")->AddAttributes(
       new ezFunctionArgumentAttributes(2, new ezDefaultValueAttribute(0.1f)),
       new ezFunctionArgumentAttributes(3, new ezExposeColorAlphaAttribute())),
+
     EZ_SCRIPT_FUNCTION_PROPERTY(DrawLineBox, In, "World", In, "Position", In, "HalfExtents", In, "Color", In, "Transform")->AddAttributes(
       new ezFunctionArgumentAttributes(2, new ezDefaultValueAttribute(ezVec3(1))),
       new ezFunctionArgumentAttributes(3, new ezExposeColorAlphaAttribute())),
+
     EZ_SCRIPT_FUNCTION_PROPERTY(DrawLineSphere, In, "World", In, "Position", In, "Radius", In, "Color", In, "Transform")->AddAttributes(
       new ezFunctionArgumentAttributes(2, new ezDefaultValueAttribute(1.0f)),
       new ezFunctionArgumentAttributes(3, new ezExposeColorAlphaAttribute())),
@@ -2113,19 +2115,25 @@ EZ_BEGIN_STATIC_REFLECTED_TYPE(ezScriptExtensionClass_Debug, ezNoBase, 1, ezRTTI
       new ezFunctionArgumentAttributes(3, new ezExposeColorAlphaAttribute())),
     
     EZ_SCRIPT_FUNCTION_PROPERTY(Draw2DText, In, "World", In, "Text", In, "Position", In, "Color", In, "SizeInPixel", In, "HAlign")->AddAttributes(
+      new ezFunctionArgumentAttributes(3, new ezExposeColorAlphaAttribute()),
       new ezFunctionArgumentAttributes(4, new ezDefaultValueAttribute(16))),
+
     EZ_SCRIPT_FUNCTION_PROPERTY(Draw3DText, In, "World", In, "Text", In, "Position", In, "Color", In, "SizeInPixel")->AddAttributes(
+      new ezFunctionArgumentAttributes(3, new ezExposeColorAlphaAttribute()),
       new ezFunctionArgumentAttributes(4, new ezDefaultValueAttribute(16))),
+
     EZ_SCRIPT_FUNCTION_PROPERTY(DrawInfoText, In, "World", In, "Text", In, "Placement", In, "Group", In, "Color"),
 
     EZ_SCRIPT_FUNCTION_PROPERTY(AddPersistentCross, In, "World", In, "Position", In, "Size", In, "Color", In, "Transform", In, "Duration")->AddAttributes(
       new ezFunctionArgumentAttributes(2, new ezDefaultValueAttribute(0.1f)),
       new ezFunctionArgumentAttributes(3, new ezExposeColorAlphaAttribute()),
       new ezFunctionArgumentAttributes(5, new ezDefaultValueAttribute(ezTime::MakeFromSeconds(1)))),
+
     EZ_SCRIPT_FUNCTION_PROPERTY(AddPersistentLineBox, In, "World", In, "Position", In, "HalfExtents", In, "Color", In, "Transform", In, "Duration")->AddAttributes(
       new ezFunctionArgumentAttributes(2, new ezDefaultValueAttribute(ezVec3(1))),
       new ezFunctionArgumentAttributes(3, new ezExposeColorAlphaAttribute()),
       new ezFunctionArgumentAttributes(5, new ezDefaultValueAttribute(ezTime::MakeFromSeconds(1)))),
+
     EZ_SCRIPT_FUNCTION_PROPERTY(AddPersistentLineSphere, In, "World", In, "Position", In, "Radius", In, "Color", In, "Transform", In, "Duration")->AddAttributes(
       new ezFunctionArgumentAttributes(2, new ezDefaultValueAttribute(1.0f)),
       new ezFunctionArgumentAttributes(3, new ezExposeColorAlphaAttribute()),

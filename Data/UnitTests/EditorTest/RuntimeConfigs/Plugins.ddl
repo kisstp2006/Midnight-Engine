@@ -72,12 +72,6 @@ Plugin
 }
 Plugin
 {
-	string %Path{"ezRecastPlugin"}
-	bool %LoadCopy{false}
-	string %DependencyOf{"EditorPluginRecast"}
-}
-Plugin
-{
 	string %Path{"ezRmlUiPlugin"}
 	bool %LoadCopy{false}
 	string %DependencyOf{"EditorPluginRmlUi"}

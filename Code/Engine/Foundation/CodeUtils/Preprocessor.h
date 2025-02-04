@@ -245,7 +245,7 @@ private:
 
   ezDeque<IfDefState> m_IfdefActiveStack;
 
-  ezResult ProcessFile(ezStringView sFile, ezTokenParseUtils::TokenStream& TokenOutput);
+  ezResult ProcessFile(ezStringView sFile, ezTokenParseUtils::TokenStream& TokenOutput, const ezToken* pCurParentToken);
   ezResult ProcessCmd(const ezTokenParseUtils::TokenStream& Tokens, ezTokenParseUtils::TokenStream& TokenOutput);
 
 public:

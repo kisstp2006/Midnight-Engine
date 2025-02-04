@@ -198,7 +198,7 @@ void ezJoltRagdollComponent::Update(bool bForce)
 
   UpdateOwnerPosition();
 
-  const ezVisibilityState visState = GetOwner()->GetVisibilityState();
+  const ezVisibilityState::Enum visState = GetOwner()->GetVisibilityState();
   if (!bForce && visState != ezVisibilityState::Direct)
   {
     m_ElapsedTimeSinceUpdate += ezClock::GetGlobalClock()->GetTimeDiff();

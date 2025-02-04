@@ -105,7 +105,7 @@ ezResult ezKrautTreeComponent::GetLocalBounds(ezBoundingBoxSphere& bounds, bool&
       // even when not looking at the tree, thus resulting in decent shadows
 
       bounds.m_fSphereRadius *= s_iLocalBoundsScale;
-      bounds.m_vBoxHalfExtends *= (float)s_iLocalBoundsScale;
+      bounds.m_vBoxHalfExtents *= (float)s_iLocalBoundsScale;
     }
 
     return EZ_SUCCESS;
@@ -290,7 +290,7 @@ ezResult ezKrautTreeComponent::CreateGeometry(ezGeometry& geo, ezWorldGeoExtract
     if (details.m_fStaticColliderRadius * fMaxScale <= 0.0f)
       return EZ_FAILURE;
 
-    const float fTreeHeight = (details.m_Bounds.m_vCenter.z + details.m_Bounds.m_vBoxHalfExtends.z) * 0.9f;
+    const float fTreeHeight = (details.m_Bounds.m_vCenter.z + details.m_Bounds.m_vBoxHalfExtents.z) * 0.9f;
 
     if (fHeightScale * fTreeHeight <= 0.0f)
       return EZ_FAILURE;

@@ -291,7 +291,7 @@ ezResult ezPreprocessor::HandleInclude(const TokenStream& Tokens0, ezUInt32 uiCu
   if (m_PragmaOnce.Find(sOtherFileHashed).IsValid())
     return EZ_SUCCESS;
 
-  if (ProcessFile(sOtherFile, TokenOutput).Failed())
+  if (ProcessFile(sOtherFile, TokenOutput, uiCurToken < Tokens.GetCount() ? Tokens[uiCurToken] : nullptr).Failed())
     return EZ_FAILURE;
 
   if (uiCurToken < Tokens.GetCount() && (Tokens[uiCurToken]->m_iType == ezTokenType::Newline || Tokens[uiCurToken]->m_iType == ezTokenType::EndOfFile))

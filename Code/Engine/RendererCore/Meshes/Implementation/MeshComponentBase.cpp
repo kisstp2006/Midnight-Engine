@@ -210,6 +210,12 @@ void ezMeshComponentBase::SetMesh(const ezMeshResourceHandle& hMesh)
 
 void ezMeshComponentBase::SetMaterial(ezUInt32 uiIndex, const ezMaterialResourceHandle& hMaterial)
 {
+  if (uiIndex >= 1024)
+  {
+    ezLog::Error("Invalid material slot index used to change mesh component material.");
+    return;
+  }
+
   m_Materials.EnsureCount(uiIndex + 1);
 
   if (m_Materials[uiIndex] != hMaterial)

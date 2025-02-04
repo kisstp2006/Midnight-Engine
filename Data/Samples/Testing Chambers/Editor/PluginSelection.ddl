@@ -6,6 +6,12 @@ PluginState
 }
 PluginState
 {
+	string %ID{"AngelScript"}
+	bool %Selected{true}
+	bool %LoadCopy{false}
+}
+PluginState
+{
 	string %ID{"Fmod"}
 	bool %Selected{true}
 	bool %LoadCopy{false}
@@ -37,12 +43,6 @@ PluginState
 PluginState
 {
 	string %ID{"ProcGen"}
-	bool %Selected{true}
-	bool %LoadCopy{false}
-}
-PluginState
-{
-	string %ID{"Recast"}
 	bool %Selected{true}
 	bool %LoadCopy{false}
 }

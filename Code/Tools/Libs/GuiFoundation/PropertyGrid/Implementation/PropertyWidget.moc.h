@@ -305,7 +305,8 @@ protected:
   virtual void InternalSetValue(const ezVariant& value) override;
 
 protected:
-  bool m_bExposeAlpha;
+  bool m_bExposeAlpha = false;
+  bool m_bIsHDR = false;
   QHBoxLayout* m_pLayout;
   ezQtColorButtonWidget* m_pWidget;
   ezVariant m_OriginalValue;

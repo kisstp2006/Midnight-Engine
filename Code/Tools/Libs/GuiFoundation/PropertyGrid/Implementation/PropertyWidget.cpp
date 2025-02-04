@@ -279,7 +279,16 @@ void ezQtPropertyEditorDoubleSpinboxWidget::InternalSetValue(const ezVariant& va
 {
   ezQtScopedBlockSignals bs(m_pWidget[0], m_pWidget[1], m_pWidget[2], m_pWidget[3]);
 
-  m_OriginalType = value.GetType();
+  m_OriginalType = GetProperty()->GetSpecificType()->GetVariantType();
+  if (m_OriginalType == ezVariantType::Invalid)
+  {
+    m_OriginalType = value.GetType();
+  }
+
+  if (m_OriginalType == ezVariantType::Invalid)
+  {
+    m_OriginalType = ezVariantType::Double;
+  }
 
   if (value.IsValid())
   {
@@ -762,7 +771,18 @@ void ezQtPropertyEditorIntSpinboxWidget::InternalSetValue(const ezVariant& value
 {
   ezQtScopedBlockSignals bs(m_pWidget[0], m_pWidget[1], m_pWidget[2], m_pWidget[3], m_pSlider);
 
-  m_OriginalType = value.GetType();
+  auto prop = GetProperty();
+  const ezRTTI* type = prop->GetSpecificType();
+  m_OriginalType = type->GetVariantType();
+  if (m_OriginalType == ezVariantType::Invalid)
+  {
+    m_OriginalType = value.GetType();
+  }
+
+  if (m_OriginalType == ezVariantType::Invalid)
+  {
+    m_OriginalType = ezVariantType::Int32;
+  }
 
   switch (m_iNumComponents)
   {
@@ -1034,7 +1054,17 @@ void ezQtPropertyEditorSliderWidget::InternalSetValue(const ezVariant& value)
 {
   ezQtScopedBlockSignals bs(m_pSlider);
 
-  m_OriginalType = value.GetType();
+  m_OriginalType = GetProperty()->GetSpecificType()->GetVariantType();
+
+  if (m_OriginalType == ezVariantType::Invalid)
+  {
+    m_OriginalType = value.GetType();
+  }
+
+  if (m_OriginalType == ezVariantType::Invalid)
+  {
+    m_OriginalType = ezVariantType::Double;
+  }
 
   m_pSlider->SetValue(value.ConvertTo<double>());
 }
@@ -1223,7 +1253,17 @@ void ezQtPropertyEditorLineEditWidget::InternalSetValue(const ezVariant& value)
 {
   ezQtScopedBlockSignals b(m_pWidget);
 
-  m_OriginalType = value.GetType();
+  m_OriginalType = GetProperty()->GetSpecificType()->GetVariantType();
+
+  if (m_OriginalType == ezVariantType::Invalid)
+  {
+    m_OriginalType = value.GetType();
+  }
+
+  if (m_OriginalType == ezVariantType::Invalid)
+  {
+    m_OriginalType = ezVariantType::String;
+  }
 
   if (!value.IsValid())
   {
@@ -1273,6 +1313,12 @@ void ezQtColorButtonWidget::SetColor(const ezVariant& color)
   }
   else
   {
+    const ezColorGammaUB col = ezColor::LightGrey;
+
+    QColor qol;
+    qol.setRgb(col.r, col.g, col.b, col.a);
+
+    m_Pal.setBrush(QPalette::Window, QBrush(qol, Qt::DiagCrossPattern));
     setPalette(m_Pal);
   }
 }
@@ -1306,8 +1352,6 @@ QSize ezQtColorButtonWidget::minimumSizeHint() const
 ezQtPropertyEditorColorWidget::ezQtPropertyEditorColorWidget()
   : ezQtStandardPropertyWidget()
 {
-  m_bExposeAlpha = false;
-
   m_pLayout = new QHBoxLayout(this);
   m_pLayout->setContentsMargins(0, 0, 0, 0);
   setLayout(m_pLayout);
@@ -1335,27 +1379,27 @@ void ezQtPropertyEditorColorWidget::InternalSetValue(const ezVariant& value)
 
 void ezQtPropertyEditorColorWidget::on_Button_triggered()
 {
-  Broadcast(ezPropertyEvent::Type::BeginTemporary);
+  if (GetProperty() && GetProperty()->GetSpecificType() == ezGetStaticRTTI<ezColor>())
+  {
+    m_bIsHDR = true;
+  }
 
-  bool bShowHDR = false;
+  Broadcast(ezPropertyEvent::Type::BeginTemporary);
 
   ezColor temp = ezColor::White;
   if (m_OriginalValue.IsValid())
   {
-    bShowHDR = m_OriginalValue.IsA<ezColor>();
-
     temp = m_OriginalValue.ConvertTo<ezColor>();
   }
 
-  ezQtUiServices::GetSingleton()->ShowColorDialog(
-    temp, m_bExposeAlpha, bShowHDR, this, SLOT(on_CurrentColor_changed(const ezColor&)), SLOT(on_Color_accepted()), SLOT(on_Color_reset()));
+  ezQtUiServices::GetSingleton()->ShowColorDialog(temp, m_bExposeAlpha, m_bIsHDR, this, SLOT(on_CurrentColor_changed(const ezColor&)), SLOT(on_Color_accepted()), SLOT(on_Color_reset()));
 }
 
 void ezQtPropertyEditorColorWidget::on_CurrentColor_changed(const ezColor& color)
 {
   ezVariant col;
 
-  if (m_OriginalValue.IsA<ezColorGammaUB>())
+  if (!m_bIsHDR)
   {
     // ezVariant does not down-cast to ezColorGammaUB automatically
     col = ezColorGammaUB(color);
@@ -1650,7 +1694,7 @@ ezQtCurve1DButtonWidget::ezQtCurve1DButtonWidget(QWidget* pParent)
 void ezQtCurve1DButtonWidget::UpdatePreview(ezObjectAccessorBase* pObjectAccessor, const ezDocumentObject* pCurveObject, QColor color, double fLowerExtents, bool bLowerFixed, double fUpperExtents, bool bUpperFixed, double fDefaultValue, double fLowerRange, double fUpperRange)
 {
   ezInt32 iNumPoints = 0;
-  pObjectAccessor->GetCount(pCurveObject, "ControlPoints", iNumPoints).AssertSuccess();
+  pObjectAccessor->GetCountByName(pCurveObject, "ControlPoints", iNumPoints).AssertSuccess();
 
   ezVariant v;
   ezHybridArray<ezVec2d, 32> points;
@@ -1664,14 +1708,14 @@ void ezQtCurve1DButtonWidget::UpdatePreview(ezObjectAccessorBase* pObjectAccesso
 
   for (ezInt32 i = 0; i < iNumPoints; ++i)
   {
-    const ezDocumentObject* pPoint = pObjectAccessor->GetChildObject(pCurveObject, "ControlPoints", i);
+    const ezDocumentObject* pPoint = pObjectAccessor->GetChildObjectByName(pCurveObject, "ControlPoints", i);
 
     ezVec2d p;
 
-    pObjectAccessor->GetValue(pPoint, "Tick", v).AssertSuccess();
+    pObjectAccessor->GetValueByName(pPoint, "Tick", v).AssertSuccess();
     p.x = v.ConvertTo<double>();
 
-    pObjectAccessor->GetValue(pPoint, "Value", v).AssertSuccess();
+    pObjectAccessor->GetValueByName(pPoint, "Value", v).AssertSuccess();
     p.y = v.ConvertTo<double>();
 
     points.PushBack(p);
@@ -1784,7 +1828,7 @@ void ezQtPropertyEditorCurve1DWidget::UpdatePreview()
     return;
 
   const ezDocumentObject* pParent = m_Items[0].m_pObject;
-  const ezDocumentObject* pCurve = m_pObjectAccessor->GetChildObject(pParent, m_pProp->GetPropertyName(), {});
+  const ezDocumentObject* pCurve = m_pObjectAccessor->GetChildObjectByName(pParent, m_pProp->GetPropertyName(), {});
   const ezColorAttribute* pColorAttr = m_pProp->GetAttributeByType<ezColorAttribute>();
   const ezCurveExtentsAttribute* pExtentsAttr = m_pProp->GetAttributeByType<ezCurveExtentsAttribute>();
   const ezDefaultValueAttribute* pDefAttr = m_pProp->GetAttributeByType<ezDefaultValueAttribute>();
@@ -1805,7 +1849,7 @@ void ezQtPropertyEditorCurve1DWidget::UpdatePreview()
 void ezQtPropertyEditorCurve1DWidget::on_Button_triggered()
 {
   const ezDocumentObject* pParent = m_Items[0].m_pObject;
-  const ezDocumentObject* pCurve = m_pObjectAccessor->GetChildObject(pParent, m_pProp->GetPropertyName(), {});
+  const ezDocumentObject* pCurve = m_pObjectAccessor->GetChildObjectByName(pParent, m_pProp->GetPropertyName(), {});
   const ezColorAttribute* pColorAttr = m_pProp->GetAttributeByType<ezColorAttribute>();
   const ezCurveExtentsAttribute* pExtentsAttr = m_pProp->GetAttributeByType<ezCurveExtentsAttribute>();
   const ezClampValueAttribute* pClampAttr = m_pProp->GetAttributeByType<ezClampValueAttribute>();

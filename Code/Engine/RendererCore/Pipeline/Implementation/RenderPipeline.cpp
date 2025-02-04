@@ -1022,7 +1022,7 @@ void ezRenderPipeline::FindVisibleObjects(const ezView& view)
   ezRasterizerView* pRasterizer = PrepareOcclusionCulling(limitedFrustum, view);
   EZ_SCOPE_EXIT(g_pRasterizerViewPool->ReturnRasterizerView(pRasterizer));
 
-  const ezVisibilityState visType = bIsMainView ? ezVisibilityState::Direct : ezVisibilityState::Indirect;
+  const ezVisibilityState::Enum visType = bIsMainView ? ezVisibilityState::Direct : ezVisibilityState::Indirect;
 
   if (pRasterizer != nullptr && pRasterizer->HasRasterizedAnyOccluders())
   {

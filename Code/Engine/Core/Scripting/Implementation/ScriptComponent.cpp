@@ -19,6 +19,7 @@ EZ_BEGIN_COMPONENT_TYPE(ezScriptComponent, 1, ezComponentMode::Static)
   {
     EZ_SCRIPT_FUNCTION_PROPERTY(SetScriptVariable, In, "Name", In, "Value"),
     EZ_SCRIPT_FUNCTION_PROPERTY(GetScriptVariable, In, "Name"),
+    EZ_SCRIPT_FUNCTION_PROPERTY(SetUpdateInterval, In, "interval"),
   }
   EZ_END_FUNCTIONS;
   EZ_BEGIN_ATTRIBUTES
@@ -165,6 +166,24 @@ ezTime ezScriptComponent::GetUpdateInterval() const
   return m_UpdateInterval;
 }
 
+void ezScriptComponent::BroadcastEventMsg(ezEventMessage& ref_msg)
+{
+  const ezRTTI* pType = ref_msg.GetDynamicRTTI();
+
+  for (auto& sender : m_EventSenders)
+  {
+    if (sender.m_pMsgType == pType)
+    {
+      sender.m_Sender.SendEventMessage(ref_msg, this, GetOwner()->GetParent());
+      return;
+    }
+  }
+
+  auto& sender = m_EventSenders.ExpandAndGetRef();
+  sender.m_pMsgType = pType;
+  sender.m_Sender.SendEventMessage(ref_msg, this, GetOwner()->GetParent());
+}
+
 const ezRangeView<const char*, ezUInt32> ezScriptComponent::GetParameters() const
 {
   return ezRangeView<const char*, ezUInt32>([]() -> ezUInt32
@@ -223,7 +242,7 @@ void ezScriptComponent::InstantiateScript(bool bActivate)
   ezResourceLock<ezScriptClassResource> pScript(m_hScriptClass, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
   if (pScript.GetAcquireResult() != ezResourceAcquireResult::Final)
   {
-    ezLog::Error("Failed to load script '{}'", GetScriptClass().GetResourceID());
+    ezLog::Error("Failed to load script '{}'", GetScriptClass().GetResourceIdOrDescription());
     return;
   }
 

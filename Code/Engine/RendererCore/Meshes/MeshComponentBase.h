@@ -58,7 +58,7 @@ struct EZ_RENDERERCORE_DLL ezMsgSetMeshMaterial : public ezMessage
   ezMaterialResourceHandle m_hMaterial; // [ property ]
 
   /// The slot on the mesh component where the material should be set.
-  ezUInt32 m_uiMaterialSlot = 0xFFFFFFFFu; // [ property ]
+  ezUInt32 m_uiMaterialSlot = 0; // [ property ]
 
   virtual void Serialize(ezStreamWriter& inout_stream) const override;
   virtual void Deserialize(ezStreamReader& inout_stream, ezUInt8 uiTypeVersion) override;
